@@ -10,6 +10,7 @@ from .serializers import (
 )
 from .permissions import IsDriver, IsLorryOwner, IsBusiness, IsAdmin
 from .models import DriverProfile, LorryOwnerProfile, BusinessProfile
+from rest_framework.generics import ListAPIView
 
 User = get_user_model()
 
@@ -100,7 +101,11 @@ class UserProfileView(APIView):
                 pass
         
         return Response(data)
-    
+
+# for getting the details of the users
+class UserListView(ListAPIView):
+    queryset = User.objects.all()  # Get all users
+    serializer_class = UserSerializer
 
 class APIRootView(APIView):
     def get(self, request):

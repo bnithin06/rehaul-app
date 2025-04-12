@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     CustomTokenObtainPairView, DriverRegistrationView, 
     LorryOwnerRegistrationView, BusinessRegistrationView,
-    AdminRegistrationView, UserProfileView,APIRootView
+    AdminRegistrationView, UserListView, UserProfileView,APIRootView
 )
 
 urlpatterns = [
@@ -20,4 +20,5 @@ urlpatterns = [
     
     # User profile endpoint
     path('profile/', UserProfileView.as_view(), name='user_profile'),
+     path('users/', UserListView.as_view(), name='user-list'),
 ]
