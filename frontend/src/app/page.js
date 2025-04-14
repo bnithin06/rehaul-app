@@ -1,8 +1,11 @@
+import AuthContext from "@/context/authcontext/page";
+
 const home = () => {
   return (
-    <div>
+    <>
       Rehaul-project- build in progress
-    </div>
+      <AuthContext/>
+    </>
   );
 }
 
