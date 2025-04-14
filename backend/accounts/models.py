@@ -1,30 +1,47 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
-class User(AbstractUser):
-    DRIVER = 'driver'
-    LORRY_OWNER = 'lorry_owner'
-    BUSINESS = 'business'
-    ADMIN = 'admin'
 
+class UserManager(BaseUserManager):
+    def create_user(self, phone_number, password=None, **extra_fields):
+        if not phone_number:
+            raise ValueError("The phone number must be set")
+        user = self.model(phone_number=phone_number, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, phone_number, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(phone_number, password, **extra_fields)
+
+class User(AbstractUser):
     ROLE_CHOICES = [
-        (DRIVER, _('Driver')),
-        (LORRY_OWNER, _('Lorry Owner')),
-        (BUSINESS, _('Business Person')),
-        (ADMIN, _('Admin')),
+        ('driver', 'Driver'),
+        ('lorry_owner', 'Lorry Owner'),
+        ('business', 'Business Person'),
+        ('admin', 'Admin'),
     ]
 
-    role = models.CharField(
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default=DRIVER,
-    )
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, unique=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='driver')
+
+    USERNAME_FIELD = 'phone_number'
+    REQUIRED_FIELDS = ['username']  # keep this because AbstractUser expects username field
     
-    
+    objects = UserManager()
+
     def __str__(self):
-        return self.username
+        return self.phone_number
 
 class DriverProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver_profile')
