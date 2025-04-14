@@ -25,19 +25,25 @@ class UserManager(BaseUserManager):
         return self.create_user(phone_number, password, **extra_fields)
 
 class User(AbstractUser):
+    # Role constants
+    DRIVER = 'driver'
+    LORRY_OWNER = 'lorry_owner'
+    BUSINESS = 'business'
+    ADMIN = 'admin'
+
     ROLE_CHOICES = [
-        ('driver', 'Driver'),
-        ('lorry_owner', 'Lorry Owner'),
-        ('business', 'Business Person'),
-        ('admin', 'Admin'),
+        (DRIVER, 'Driver'),
+        (LORRY_OWNER, 'Lorry Owner'),
+        (BUSINESS, 'Business Person'),
+        (ADMIN, 'Admin'),
     ]
 
     phone_number = models.CharField(max_length=15, unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='driver')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=DRIVER)
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = ['username']  # keep this because AbstractUser expects username field
-    
+    REQUIRED_FIELDS = ['username']
+
     objects = UserManager()
 
     def __str__(self):

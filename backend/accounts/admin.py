@@ -1,57 +1,86 @@
-# admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, DriverProfile, LorryOwnerProfile, BusinessProfile
 
+
+# Inline admin for Driver
 class DriverProfileInline(admin.StackedInline):
     model = DriverProfile
     can_delete = False
     verbose_name_plural = 'Driver Profile'
+    fk_name = 'user'
 
+
+# Inline admin for Lorry Owner
 class LorryOwnerProfileInline(admin.StackedInline):
     model = LorryOwnerProfile
     can_delete = False
     verbose_name_plural = 'Lorry Owner Profile'
+    fk_name = 'user'
 
+
+# Inline admin for Business
 class BusinessProfileInline(admin.StackedInline):
     model = BusinessProfile
     can_delete = False
     verbose_name_plural = 'Business Profile'
+    fk_name = 'user'
 
-class CustomUserAdmin(UserAdmin):
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = ('id', 'phone_number', 'username', 'role', 'is_staff', 'is_superuser')
+    list_filter = ('role', 'is_staff', 'is_superuser')
+    search_fields = ('phone_number', 'username')
+    ordering = ('id',)
+
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'phone_number')}),
-        (_('Role'), {'fields': ('role',)}),
-        (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-        }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+        (None, {'fields': ('phone_number', 'password')}),
+        ('Personal Info', {'fields': ('username',)}),
+        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important Dates', {'fields': ('last_login', 'date_joined')}),
     )
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'role'),
+            'fields': ('phone_number', 'username', 'password1', 'password2', 'role'),
         }),
     )
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_staff')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'role', 'groups')
-    search_fields = ('username', 'first_name', 'last_name', 'email')
-    ordering = ('username',)
-    
-    def get_inlines(self, request, obj=None):
-        if obj:
-            if obj.role == User.DRIVER:
-                return [DriverProfileInline]
-            elif obj.role == User.LORRY_OWNER:
-                return [LorryOwnerProfileInline]
-            elif obj.role == User.BUSINESS:
-                return [BusinessProfileInline]
+
+    inlines = []
+
+    def get_inlines(self, request, obj):
+        if not obj:
+            return []
+
+        if obj.role == User.DRIVER:
+            return [DriverProfileInline]
+        elif obj.role == User.LORRY_OWNER:
+            return [LorryOwnerProfileInline]
+        elif obj.role == User.BUSINESS:
+            return [BusinessProfileInline]
         return []
 
-# Register the models
-admin.site.register(User, CustomUserAdmin)
-admin.site.register(DriverProfile)
-admin.site.register(LorryOwnerProfile)
-admin.site.register(BusinessProfile)
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = []
+        for inline_class in self.get_inlines(request, obj):
+            inline = inline_class(self.model, self.admin_site)
+            inline_instances.append(inline)
+        return inline_instances
+
+
+# Register profile models separately as well (optional but useful)
+@admin.register(DriverProfile)
+class DriverProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'license_number', 'driving_experience', 'vehicle_type')
+
+
+@admin.register(LorryOwnerProfile)
+class LorryOwnerProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company_name', 'number_of_vehicles', 'business_registration_number')
+
+
+@admin.register(BusinessProfile)
+class BusinessProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'business_name', 'business_type', 'address')
