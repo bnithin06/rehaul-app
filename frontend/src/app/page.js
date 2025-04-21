@@ -1,7 +1,9 @@
 const home = () => {
   return (
     <>
-      Rehaul-project- build in progress
+    <div className=" h-full">
+     Rehaul-project- build in progress
+    </div>
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { AuthProvider } from "@/context/AuthContext"
 import Navbar from "./navbar/Navbar"
+import Footer from "./footer/footer"
 
 export default function Providers({ children }) {
   return (
@@ -9,6 +10,7 @@ export default function Providers({ children }) {
       <>
         <Navbar />
         {children}
+        <Footer/>
       </>
     </AuthProvider>
   )

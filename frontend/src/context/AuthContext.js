@@ -1,157 +1,139 @@
 'use client'
 
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { jwtDecode } from 'jwt-decode'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
 
-const AuthContext = createContext()
+const AuthContext = createContext(null)
 
 export default AuthContext
 
+const REFRESH_INTERVAL_MS = 1000 * 60 * 4
+
 export const AuthProvider = ({ children }) => {
   const router = useRouter()
-
   const [authTokens, setAuthTokens] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(null)
 
-  // Load tokens and user from localStorage (client-side only)
-  useEffect(() => {
-    const tokens = localStorage.getItem('authTokens')
-    if (tokens) {
-      const parsedTokens = JSON.parse(tokens)
-      setAuthTokens(parsedTokens)
-      setUser(jwtDecode(parsedTokens.access))
+  const routeBasedOnRole = useCallback((role) => {
+    const routes = {
+      driver: '/dashboard/driver',
+      lorry_owner: '/dashboard/lorry-owner',
+      business: '/dashboard/merchant',
+      admin: '/dashboard/admin'
     }
-    setLoading(false)
+    router.push(routes[role] || '/')
+  }, [router])
+
+  useEffect(() => {
+    const loadAuthData = () => {
+      try {
+        const tokens = localStorage.getItem('authTokens')
+        if (tokens) {
+          const parsedTokens = JSON.parse(tokens)
+          const decodedUser = jwtDecode(parsedTokens.access)
+
+          setAuthTokens(parsedTokens)
+          setUser(decodedUser)
+
+          if (Date.now() >= decodedUser.exp * 1000) {
+            logoutUser()
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load auth data:', err)
+        logoutUser()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAuthData()
   }, [])
 
   const loginUser = async (e) => {
     e.preventDefault()
-    setError(false)
+    setError(null)
 
     try {
-      const response = await fetch('http://localhost:8000/auth/token/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-        //   phone_number: e.target.phone_number.value,
-        //   password: e.target.password.value,
-
-          phone_number: "9908169058",
-          password:"1234",
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.status === 200) {
-        const decoded = jwtDecode(data.access)
-        const tokens = { access: data.access, refresh: data.refresh }
-
-        setAuthTokens(tokens)
-        setUser(decoded)
-        localStorage.setItem('authTokens', JSON.stringify(tokens))
-        routeBasedOnRole(decoded.role)
-      } else {
-        setError(true)
+      const formData = {
+        phone_number: e.target.phone_number.value,
+        password: e.target.password.value,
       }
+
+      const { data } = await axios.post('http://localhost:8000/auth/token/', formData)
+
+      const decoded = jwtDecode(data.access)
+      const tokens = {
+        access: data.access,
+        refresh: data.refresh,
+      }
+
+      setAuthTokens(tokens)
+      setUser(decoded)
+      localStorage.setItem('authTokens', JSON.stringify(tokens))
+      routeBasedOnRole(decoded.role)
     } catch (err) {
       console.error('Login error:', err)
-      setError(true)
+      setError('Invalid credentials. Please try again.')
     }
   }
 
-  const logoutUser = () => {
+  const logoutUser = useCallback(() => {
     setAuthTokens(null)
     setUser(null)
     localStorage.removeItem('authTokens')
     router.push('/')
-  }
+  }, [router])
 
-  const updateToken = async () => {
-    const storedTokens = localStorage.getItem('authTokens')
-    const refreshToken = storedTokens ? JSON.parse(storedTokens).refresh : null
-
-    if (!refreshToken) {
+  const updateToken = useCallback(async () => {
+    if (!authTokens?.refresh) {
       logoutUser()
       return
     }
 
     try {
-      const response = await fetch('http://localhost:8000/auth/token/refresh/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh: refreshToken }),
+      const { data } = await axios.post('http://localhost:8000/auth/token/refresh/', {
+        refresh: authTokens.refresh,
       })
 
-      const data = await response.json()
-
-      if (response.status === 200) {
-        const updatedTokens = {
-          access: data.access,
-          refresh: refreshToken,
-        }
-
-        setAuthTokens(updatedTokens)
-        const decoded = jwtDecode(data.access)
-        setUser(decoded)
-        localStorage.setItem('authTokens', JSON.stringify(updatedTokens))
-      } else {
-        logoutUser()
+      const updatedTokens = {
+        access: data.access,
+        refresh: authTokens.refresh,
       }
+
+      setAuthTokens(updatedTokens)
+      const decoded = jwtDecode(data.access)
+      setUser(decoded)
+      localStorage.setItem('authTokens', JSON.stringify(updatedTokens))
     } catch (err) {
       console.error('Token refresh error:', err)
       logoutUser()
     }
-  }
+  }, [authTokens, logoutUser])
 
-  const routeBasedOnRole = (role) => {
-    switch (role) {
-      case 'driver':
-        router.push('/dashboard/driver')
-        break
-      case 'lorry_owner':
-        router.push('/dashboard/lorry-owner')
-        break
-      case 'business':
-        router.push('/dashboard/merchant')
-        break
-      case 'admin':
-        router.push('/dashboard/admin')
-        break
-      default:
-        router.push('/')
-    }
-  }
-
-  // Auto-refresh token every 4 minutes
   useEffect(() => {
     if (!authTokens) return
 
-    const interval = setInterval(() => {
-      updateToken()
-    }, 1000 * 60 * 4)
-
+    const interval = setInterval(updateToken, REFRESH_INTERVAL_MS)
     return () => clearInterval(interval)
-  }, [authTokens])
+  }, [authTokens, updateToken])
 
-  const contextData = {
+  const contextValue = useMemo(() => ({
     user,
     authTokens,
     loginUser,
     logoutUser,
     error,
-  }
+    isAuthenticated: !!user,
+  }), [user, authTokens, error, logoutUser])
 
   return (
-    <AuthContext.Provider value={contextData}>
-      {loading ? null : children}
+    <AuthContext.Provider value={contextValue}>
+      {loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   )
 }

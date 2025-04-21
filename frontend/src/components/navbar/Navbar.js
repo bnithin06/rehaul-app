@@ -7,12 +7,14 @@ import AuthContext from '@/context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useContext(AuthContext); // <-- user from context
+  const [showDropdown, setShowDropdown] = useState(false); // for profile dropdown
+  const { user, logoutUser } = useContext(AuthContext);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleDropdown = () => setShowDropdown(!showDropdown);
 
   return (
-    <nav className="bg-[#3C3B5A] text-[#F8F3E4] shadow-md">
+    <nav className="bg-[#3C3B5A] text-[#F8F3E4] shadow-md relative">
       <div className="container mx-auto flex justify-between items-center px-4 py-3">
         {/* Logo */}
         <div className="text-2xl font-bold tracking-wide">ReHaul</div>
@@ -25,12 +27,23 @@ const Navbar = () => {
           <NavItem title="Contact" />
 
           {user ? (
-            // Logged in: show user icon
-            <li className="ml-4">
-              <UserCircle size={28} className="text-[#F8F3E4]" />
+            <li className="relative">
+              <button onClick={toggleDropdown} className="focus:outline-none">
+                <UserCircle size={28} className="text-[#F8F3E4]" />
+              </button>
+
+              {showDropdown && (
+                <ul className="absolute right-0 mt-2 w-40 bg-white text-[#3C3B5A] rounded-md shadow-lg z-50">
+                  <li className="px-4 py-2 hover:bg-gray-100">
+                    <Link href="/profile">Your Profile</Link>
+                  </li>
+                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={logoutUser}>
+                    Logout
+                  </li>
+                </ul>
+              )}
             </li>
           ) : (
-            // Not logged in: show Sign In / Sign Up
             <>
               <li>
                 <Link href="/login" className="hover:text-[#AED6AC] transition-colors duration-200">
@@ -64,20 +77,21 @@ const Navbar = () => {
             <NavItem title="Contact" />
 
             {user ? (
-              <li>
-                <UserCircle size={28} className="text-[#3C3B5A]" />
-              </li>
+              <>
+                <li>
+                  <Link href="/profile">Your Profile</Link>
+                </li>
+                <li onClick={logoutUser} className="cursor-pointer">
+                  Logout
+                </li>
+              </>
             ) : (
               <>
                 <li>
-                  <Link href="/login" className="hover:text-[#AED6AC] transition-colors duration-200">
-                    Sign In
-                  </Link>
+                  <Link href="/login">Sign In</Link>
                 </li>
                 <li>
-                  <Link href="/signup" className="hover:text-[#AED6AC] transition-colors duration-200">
-                    Sign Up
-                  </Link>
+                  <Link href="/signup">Sign Up</Link>
                 </li>
               </>
             )}

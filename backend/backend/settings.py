@@ -45,6 +45,9 @@ INSTALLED_APPS = [
 
     'home',
     'accounts',
+    'driver',
+    'lorry_owners',
+    'businesses',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -56,8 +59,18 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
     )
     
+}
+
+
+# jwt permissions
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
+         'rest_framework.permissions.AllowAny',
+    ]
 }
 
 # jwt settings
