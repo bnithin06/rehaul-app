@@ -136,6 +136,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
 ]
 
+ALLOWED_HOSTS = ['rehaul-app.onrender.com']
+
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
