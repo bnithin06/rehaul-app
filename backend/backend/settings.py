@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
+import os
+import dj_database_url
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -169,15 +173,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME':'rehaul-app',
+#         'USER': 'postgres',   
+#         'PASSWORD': 'Nithin@123',
+#         'HOST': 'localhost',
+#     }
+# }
+
+DATABASE_URL="postgres://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a:5432/rehaul_db"
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':'rehaul-app',
-        'USER': 'postgres',   
-        'PASSWORD': 'Nithin@123',
-        'HOST': 'localhost',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
+
 
 
 # Password validation
