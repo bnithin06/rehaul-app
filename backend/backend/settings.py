@@ -132,6 +132,8 @@ MIDDLEWARE = [
 
     
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
+
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -184,7 +186,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        'default': 'postgresql://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a:5432/rehaul_db',
+        default= 'postgresql://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a.oregon-postgres.render.com/rehaul_db',
         conn_max_age=600
     )
 }
@@ -225,7 +227,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATIC_ROOT='/assests'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
