@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
-import os
 import dj_database_url
 
 
@@ -183,12 +182,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
-DATABASE_URL="postgres://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a:5432/rehaul_db"
-
-
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
+        default='postgresql://postgres:postgres@localhost:5432/rehaul-app',
+        conn_max_age=600
     )
 }
 
