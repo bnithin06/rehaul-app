@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
-import dj_database_url
-
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -138,10 +136,11 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:3001",
+    "http://127.0.0.1:3000",
 ]
 
-ALLOWED_HOSTS = ['rehaul-app.onrender.com', 'localhost', '127.0.0.1']
+
+# ALLOWED_HOSTS = ['rehaul-app.onrender.com', 'localhost', '127.0.0.1']
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -174,22 +173,22 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME':'rehaul-app',
-#         'USER': 'postgres',   
-#         'PASSWORD': 'Nithin@123',
-#         'HOST': 'localhost',
-#     }
-# }
-
 DATABASES = {
-    'default': dj_database_url.config(
-        default= 'postgresql://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a.oregon-postgres.render.com/rehaul_db',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME':'rehaul-app',
+        'USER': 'postgres',   
+        'PASSWORD': 'Nithin@123',
+        'HOST': 'localhost',
+    }
 }
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default= 'postgresql://rehaul_db_user:ZBa91RJtpQYkoikb0edtchYoz0C82eLb@dpg-d1jau52dbo4c73cd88hg-a.oregon-postgres.render.com/rehaul_db',
+#         conn_max_age=600
+#     )
+# }
 
 
 
@@ -228,14 +227,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-
-if not DEBUG:
-    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
-    # and renames the files with unique names for each version to support long-term caching
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATIC_ROOT='/assests'
 
