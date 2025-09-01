@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import LoadRequest
+from .models import Load
 
-class LoadRequestSerializer(serializers.ModelSerializer):
+class LoadSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LoadRequest
+        model = Load
         fields = '__all__'
+        read_only_fields = ['user', 'created_at']

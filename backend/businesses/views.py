@@ -1,13 +1,8 @@
-from rest_framework import generics, permissions
-from .models import LoadRequest
-from .serializers import LoadRequestSerializer
+from rest_framework import viewsets
+from .serializers import LoadSerializer
+from .models import Load
+class LoadViewSet(viewsets.ModelViewSet):
+    serializer_class = LoadSerializer
+    queryset = Load.objects.all()
 
-class LoadRequestListCreateView(generics.ListCreateAPIView):
-    serializer_class = LoadRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return LoadRequest.objects.filter(posted_by=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(posted_by=self.request.user)

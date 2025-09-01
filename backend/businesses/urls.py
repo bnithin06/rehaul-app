@@ -1,6 +1,6 @@
-from django.urls import path
-from .views import LoadRequestListCreateView
+from .views import LoadViewSet
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = [
-    path('load-requests/', LoadRequestListCreateView.as_view(), name='load-requests'),
-]
+router = DefaultRouter()
+router.register(r'load',LoadViewSet, basename='load')
+urlpatterns = router.urls
